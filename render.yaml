@@ -1,0 +1,8 @@
+# Arya Downloader — Render (Docker). Koi env var / API key NAHI chahiye.
+services:
+  - type: web
+    name: arya-downloader
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /healthz
