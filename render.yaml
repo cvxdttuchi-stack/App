@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: veda-ai
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      # Veda AI BYOK hai: koi API key server par nahi lagti.
+      # User apni Gemini/Llama key app ki Settings me daalta hai (uske browser me rehti hai).
+      - key: ACCESS_CODE      # (optional) poore app par password lagana ho to
+        sync: false
