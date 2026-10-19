@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#0b0d12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Mera AI</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" aria-label="Chats">
+    <div class="side-top">
+      <div class="brand"><span class="logo">✦</span> Mera AI</div>
+      <button id="newChat" class="btn primary wide">＋ Nayi chat</button>
+      <input id="search" type="search" placeholder="Chats me khojo…" autocomplete="off">
+    </div>
+    <div id="chatList" class="chat-list"></div>
+    <div class="side-bottom">
+      <button id="openMemory" class="btn ghost wide">🧠 Memory (AI kya yaad rakhta hai)</button>
+      <button id="openSettings" class="btn ghost wide">⚙️ Settings</button>
+      <div class="row2">
+        <button id="exportChat" class="btn ghost small">Chat .md</button>
+        <button id="backup" class="btn ghost small">Backup</button>
+        <button id="restore" class="btn ghost small">Restore</button>
+      </div>
+      <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+    </div>
+  </aside>
+  <div id="scrim"></div>
+
+  <!-- MAIN -->
+  <main id="main">
+    <header id="topbar">
+      <button id="menuBtn" class="icon-btn" aria-label="Menu">☰</button>
+      <div class="title-wrap">
+        <div id="chatTitle" class="chat-title" title="Naam badalne ke liye tap karo">Mera AI</div>
+        <div id="modelBadge" class="model-badge"></div>
+      </div>
+      <button id="newChat2" class="icon-btn" aria-label="Nayi chat">＋</button>
+    </header>
+
+    <div id="banner" class="banner" hidden></div>
+
+    <section id="messages" aria-live="polite">
+      <div id="empty" class="empty">
+        <div class="hero-logo">✦</div>
+        <h1>Namaste! Main Mera AI hun.</h1>
+        <p>Bolo ya likho. File, PDF, photo attach karo. Main samjhunga, likhunga, bolunga.</p>
+        <div id="suggest" class="suggest"></div>
+      </div>
+    </section>
+
+    <footer id="composer">
+      <div id="pending" class="pending" hidden></div>
+      <div id="quick" class="quick" hidden></div>
+      <div class="tools">
+        <button id="tDoc" class="chip" title="Jaisa bologe waisa PDF/document banega">📄 PDF mode</button>
+        <button id="tSearch" class="chip" title="Internet se taaza jaankari (free plan me na chale to apne aap band)">🌐 Search</button>
+        <button id="tLang" class="chip" title="Mic ki bhasha">हि</button>
+        <button id="tSpeak" class="chip" title="Jawab apne aap bolna">🔊 Auto-bolo</button>
+        <button id="tHands" class="chip" title="Baat-cheet mode: bolo → jawab suno → fir bolo">🎧 Hands-free</button>
+      </div>
+      <div class="input-row">
+        <button id="attachBtn" class="round" aria-label="File attach karo" title="File / photo / PDF">📎</button>
+        <input type="file" id="fileInput" multiple hidden accept="image/*,application/pdf,audio/*,video/*,text/*,.txt,.md,.csv,.json,.xml,.html,.js,.py,.java,.c,.cpp,.ts,.css,.yaml,.yml,.log">
+        <textarea id="input" rows="1" placeholder="Kuch bhi poochho…" enterkeyhint="send"></textarea>
+        <button id="micBtn" class="round" aria-label="Bolo" title="Bolkar likhwao">🎤</button>
+        <button id="sendBtn" class="round send" aria-label="Bhejo" title="Bhejo">➤</button>
+        <button id="stopBtn" class="round stop" aria-label="Roko" title="Roko" hidden>■</button>
+      </div>
+    </footer>
+  </main>
+</div>
+
+<!-- SETTINGS -->
+<div id="settingsModal" class="modal" hidden>
+  <div class="sheet">
+    <div class="sheet-head"><h2>Settings</h2><button class="icon-btn close" data-close>✕</button></div>
+    <div class="sheet-body">
+      <label class="field"><span>Gemini API key (free)</span>
+        <input id="sKey" type="password" placeholder="AIza… (server par key ho to khali chhodo)" autocomplete="off">
+        <small>aistudio.google.com se free me milti hai. Sirf is phone me save hoti hai.</small></label>
+      <label class="field"><span>Access code</span>
+        <input id="sCode" type="password" placeholder="Agar server par ACCESS_CODE lagaya hai" autocomplete="off"></label>
+      <label class="field"><span>Model</span>
+        <select id="sModel"><option value="auto">Auto (sabse achha, khud badalta hai)</option></select>
+        <small>Auto me koi model band/slow ho to AI khud doosre par chala jata hai.</small></label>
+      <label class="field"><span>Rachnatmakta (temperature): <b id="sTempV"></b></span>
+        <input id="sTemp" type="range" min="0" max="1.5" step="0.1"></label>
+      <label class="field"><span>AI ka swabhav / niyam (apna prompt)</span>
+        <textarea id="sPersona" rows="4" placeholder="Jaise: Mujhse Hinglish me baat karo. Jawab chhote aur seedhe do."></textarea></label>
+      <div class="grid2">
+        <label class="field"><span>Mic ki bhasha</span>
+          <select id="sMicLang"><option value="hi-IN">Hindi</option><option value="en-IN">English (India)</option><option value="en-US">English (US)</option><option value="mr-IN">Marathi</option><option value="bn-IN">Bangla</option><option value="ta-IN">Tamil</option><option value="te-IN">Telugu</option><option value="gu-IN">Gujarati</option><option value="pa-IN">Punjabi</option></select></label>
+        <label class="field"><span>Bolne ki bhasha</span>
+          <select id="sTtsLang"><option value="auto">Auto</option><option value="hi-IN">Hindi</option><option value="en-IN">English (India)</option><option value="en-US">English (US)</option></select></label>
+      </div>
+      <label class="field"><span>Bolne ki raftaar: <b id="sRateV"></b></span>
+        <input id="sRate" type="range" min="0.6" max="1.6" step="0.1"></label>
+      <div class="grid2">
+        <label class="field"><span>Theme</span>
+          <select id="sTheme"><option value="dark">Dark</option><option value="light">Light</option><option value="auto">Phone jaisa</option></select></label>
+        <label class="field"><span>Akshar ka size</span>
+          <select id="sFont"><option value="14">Chhota</option><option value="16">Normal</option><option value="18">Bada</option><option value="20">Bahut bada</option></select></label>
+      </div>
+      <label class="check"><input id="sVoiceSend" type="checkbox"> Bolne ke baad apne aap bhej do</label>
+      <label class="check"><input id="sAutoLearn" type="checkbox"> AI meri zaroori baatein yaad rakhe (Memory)</label>
+      <label class="check"><input id="sSearch" type="checkbox"> Web search chalu rakho</label>
+      <div class="row2">
+        <button id="sTest" class="btn ghost">Connection test</button>
+        <button id="sClear" class="btn danger">Sab data mitao</button>
+      </div>
+      <div id="sTestOut" class="small-note"></div>
+    </div>
+    <div class="sheet-foot"><button class="btn primary wide" id="sSave">Save</button></div>
+  </div>
+</div>
+
+<!-- MEMORY -->
+<div id="memoryModal" class="modal" hidden>
+  <div class="sheet">
+    <div class="sheet-head"><h2>🧠 Memory</h2><button class="icon-btn close" data-close>✕</button></div>
+    <div class="sheet-body">
+      <p class="small-note">Ye baatein har chat me AI ko di jati hain. Galat ho to mita do. 👎 dabane par AI ki galti bhi yahin “seekh” ke roop me judti hai.</p>
+      <div id="memList" class="mem-list"></div>
+      <div class="input-row" style="margin-top:10px">
+        <input id="memNew" type="text" placeholder="Nayi baat jodo (jaise: Mera naam Ravi hai)">
+        <button id="memAdd" class="btn primary">Jodo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DOC PREVIEW -->
+<div id="docModal" class="modal" hidden>
+  <div class="sheet tall">
+    <div class="sheet-head"><h2 id="docTitle">Document</h2><button class="icon-btn close" data-close>✕</button></div>
+    <iframe id="docFrame" sandbox="allow-same-origin" title="Document preview"></iframe>
+    <div class="sheet-foot row3">
+      <button id="docPdf" class="btn primary">📄 PDF save karo</button>
+      <button id="docHtml" class="btn ghost">HTML</button>
+      <button id="docDoc" class="btn ghost">Word</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="md.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
