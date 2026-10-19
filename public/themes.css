@@ -1,0 +1,219 @@
+/* ==========================================================================
+   Veda AI — Premium Animated Themes
+   --------------------------------------------------------------------------
+   4 themes, selected via <html data-theme="..."> :
+
+     data-theme="midnight"   deep navy-black + royal gold   (DEFAULT)
+     data-theme="ocean"      deep sea navy-teal + glowing cyan
+     data-theme="sunset"     dark plum/charcoal + neon orange-pink
+     data-theme="pearl"      light pearl + rose-gold
+
+   Load AFTER style.css:
+     <link rel="stylesheet" href="style.css">
+     <link rel="stylesheet" href="themes.css">
+
+   Every block below overrides the FULL :root variable list from style.css
+   (--bg --bg2 --surface --surface2 --line --text --muted --accent --accent2
+   --grad --user --danger --ok --radius --fs --shadow + color-scheme),
+   plus --heart (constant #ff5d7e) and --on-grad (text color on gradients).
+   ========================================================================== */
+
+/* ---------- heart accent: constant pink across ALL themes ---------- */
+:root { --heart: #ff5d7e; }
+
+/* ==========================================================================
+   1) MIDNIGHT (default) — deep navy-black + royal gold
+   Plain :root is included so the app looks right even with no data-theme
+   attribute set; style.css's :root[data-theme="light"] / "hacker" still win
+   for those themes because they have higher specificity.
+   ========================================================================== */
+:root,
+:root[data-theme="midnight"] {
+  --bg: #0b0d12;
+  --bg2: #10131a;
+  --surface: #151923;
+  --surface2: #1b2030;
+  --line: #262c3d;
+  --text: #e8ebf3;
+  --muted: #8b93a8;
+  --accent: #e8b93c;
+  --accent2: #d4a017;
+  --grad: linear-gradient(135deg, #e8b93c 0%, #d4a017 100%);
+  --user: #232a44;
+  --danger: #ef5a6f;
+  --ok: #34d399;
+  --radius: 18px;
+  --fs: 16px;
+  --shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  --heart: #ff5d7e;
+  --on-grad: #241a05;              /* dark text on gold gradients */
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   2) OCEAN — deep sea navy-teal + glowing cyan/turquoise
+   ========================================================================== */
+:root[data-theme="ocean"] {
+  --bg: #041e26;
+  --bg2: #062a33;
+  --surface: #07333e;
+  --surface2: #0a3f4c;
+  --line: #114e5e;
+  --text: #e7f6f9;
+  --muted: #7fa9b5;
+  --accent: #22d3ee;
+  --accent2: #2dd4bf;
+  --grad: linear-gradient(135deg, #0e7490 0%, #22d3ee 100%);
+  --user: #083845;
+  --danger: #f0657a;
+  --ok: #34d399;
+  --radius: 18px;
+  --fs: 16px;
+  --shadow: 0 10px 40px rgba(0, 22, 30, 0.55);
+  --heart: #ff5d7e;
+  --on-grad: #03252d;              /* dark text on cyan gradients */
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   3) SUNSET — dark plum/charcoal + neon orange-pink
+   ========================================================================== */
+:root[data-theme="sunset"] {
+  --bg: #140c18;
+  --bg2: #1a0f1e;
+  --surface: #221424;
+  --surface2: #2c182f;
+  --line: #432242;
+  --text: #f8edf2;
+  --muted: #ab8ba2;
+  --accent: #fb7185;
+  --accent2: #fbbf24;
+  --grad: linear-gradient(135deg, #fb7185 0%, #fbbf24 100%);
+  --user: #352033;
+  --danger: #ff5a7e;
+  --ok: #34d399;
+  --radius: 18px;
+  --fs: 16px;
+  --shadow: 0 10px 40px rgba(22, 6, 16, 0.55);
+  --heart: #ff5d7e;
+  --on-grad: #2c0f16;              /* dark text on pink-amber gradients */
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   4) PEARL — light pearl + rose-gold
+   ========================================================================== */
+:root[data-theme="pearl"] {
+  --bg: #f7f5ef;
+  --bg2: #fffdf7;
+  --surface: #ffffff;
+  --surface2: #efece1;
+  --line: #ddd6c4;
+  --text: #2b251c;
+  --muted: #7b7261;
+  --accent: #b76e79;
+  --accent2: #d9a05b;
+  --grad: linear-gradient(135deg, #b76e79 0%, #d9a05b 100%);
+  --user: #f3e9da;
+  --danger: #cf4d63;
+  --ok: #2c9d6c;
+  --radius: 18px;
+  --fs: 16px;
+  --shadow: 0 10px 30px rgba(120, 100, 75, 0.14);
+  --heart: #ff5d7e;
+  --on-grad: #ffffff;              /* white text on rose-gold gradients */
+  color-scheme: light;
+}
+
+/* Keep on-gradient text readable for the pre-existing light/hacker themes */
+:root[data-theme="light"] { --on-grad: #ffffff; }
+:root[data-theme="hacker"] { --on-grad: #ffffff; }
+
+/* Text placed directly on --grad surfaces (style.css hardcodes #fff there) */
+.btn.primary, .round.send, .quick button, .hero-logo, .msg.ai .who i {
+  color: var(--on-grad, #fff);
+}
+
+/* style.css's fixed-color text styles assume a dark or light theme;
+   mirror the light-theme corrections for pearl (a light theme). */
+:root[data-theme="pearl"] .msg.ts-yellow .content { color: #8a6d00; }
+:root[data-theme="pearl"] .msg.ts-blue .content { color: #0b5ed7; }
+:root[data-theme="pearl"] .pdf-body { background: #e9e6db; }
+
+/* ==========================================================================
+   Smooth ANIMATED theme transitions
+   Targeted selector list (no `*`) so layout animations are untouched.
+   ========================================================================== */
+body, #app, #sidebar, #main, #topbar, #messages, #composer, .chat-list,
+.side-top, .side-bottom, .chat-item, .side-tab, .icon-btn, .round, .chip,
+.tabs button, .msg .bubble, .content a, .content code, .content blockquote,
+.content hr, .code, .code-head, .table-wrap, th, td, .file-chip, .sources a,
+.doc-card, .actions button, .mem-item, .pin-item, .lib-row, .lib-meta b,
+.pd-file, .tl-sec, .sheet, .toast, .listen, .banner, .expand-btn,
+.img-progress, .quick button, .pdf-toolbar, .pdf-status, .run-toolbar,
+.run-label, .pv-hit, .brand-foot, .tl-drop, .row-btns .btn, .doc-btns .btn,
+input, textarea, select, button {
+  transition: background-color .45s ease, color .45s ease,
+              border-color .45s ease, box-shadow .45s ease;
+}
+/* Preserve the micro-interactions style.css defines on these elements */
+.btn {
+  transition: background-color .45s ease, color .45s ease,
+              border-color .45s ease, box-shadow .45s ease,
+              transform .08s, opacity .2s;
+}
+#sidebar {
+  transition: background-color .45s ease, border-color .45s ease,
+              transform .25s ease;   /* keep mobile drawer slide */
+}
+.suggest button {
+  transition: background-color .45s ease, color .45s ease,
+              border-color .45s ease, box-shadow .45s ease,
+              transform .15s;         /* keep hover lift */
+}
+.round.mic {
+  transition: background-color .45s ease, color .45s ease,
+              box-shadow .45s ease, transform .15s;
+}
+
+/* ==========================================================================
+   Animated ambient background — soft accent-tinted radial glows,
+   slowly drifting behind the app. pointer-events:none, low opacity,
+   sits behind content (negative z-index, above body's own background).
+   ========================================================================== */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -6%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(42rem 42rem at 12% 8%,
+      color-mix(in srgb, var(--accent) 14%, transparent), transparent 65%),
+    radial-gradient(48rem 48rem at 88% 90%,
+      color-mix(in srgb, var(--accent2) 12%, transparent), transparent 65%),
+    radial-gradient(30rem 30rem at 78% 12%,
+      color-mix(in srgb, var(--accent) 7%, transparent), transparent 60%);
+  animation: ambientDrift 18s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes ambientDrift {
+  from { transform: translate3d(-3%, -2%, 0) scale(1); }
+  to   { transform: translate3d(3%, 2.5%, 0) scale(1.06); }
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none; }
+  body, #app, #sidebar, #main, #topbar, #messages, #composer, .chat-list,
+  .side-top, .side-bottom, .chat-item, .side-tab, .icon-btn, .round, .chip,
+  .tabs button, .msg .bubble, .content a, .content code, .content blockquote,
+  .content hr, .code, .code-head, .table-wrap, th, td, .file-chip, .sources a,
+  .doc-card, .actions button, .mem-item, .pin-item, .lib-row, .lib-meta b,
+  .pd-file, .tl-sec, .sheet, .toast, .listen, .banner, .expand-btn,
+  .img-progress, .quick button, .pdf-toolbar, .pdf-status, .run-toolbar,
+  .run-label, .pv-hit, .brand-foot, .tl-drop, .row-btns .btn, .doc-btns .btn,
+  input, textarea, select, button, .btn, .suggest button, .round.mic {
+    transition: none;
+  }
+}
