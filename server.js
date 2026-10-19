@@ -12,7 +12,7 @@ const { Readable, pipeline } = require("stream");
 const AdmZip = require("adm-zip");
 const {
   fetchWithRetry, REGISTRY, safeBase, getEntries, classify, KIND_HI, errText,
-  verifyKey, detectProvider, resolveAuto, listModelIds, openaiChat, pipeOpenAIAsGemini,
+  verifyKey, detectProvider, listModelIds, openaiChat, pipeOpenAIAsGemini,
 } = require("./providers");
 
 const app = express();
@@ -141,36 +141,33 @@ app.post("/api/detect", rateLimit, auth, async (req, res) => {
       if (!safeBase(base)) return fail(res, 400, "Custom AI ke liye sahi https Base URL chahiye (jaise https://api.example.com/v1).");
     }
     const det = await detectProvider(key, hint);
+    if (!det.candidates.length) {
+      return fail(res, 422, "Is key ka AI pehchana nahi gaya. Neeche list se AI khud chuno (ya 'Custom' me Base URL daalo).", { needChoice: true });
+    }
     const tried = [];
-    const mk = (p) => ({ p, k: key, b: p === "custom" ? base : "", m });
-    const okRes = (p, v) => ok(res, {
-      provider: p, name: REGISTRY[p].name, emoji: REGISTRY[p].emoji,
-      base: v.base && p !== "gemini" && v.base !== REGISTRY[p].base ? v.base : "",
-      models: (v.models || []).slice(0, 150), verified: !v.unverified,
-      note: v.note || (v.unverified ? "Key save ho gayi (is AI me jaanch ka rasta nahi, chat se pata chalega)." : ""),
-    });
-    if (det.probeAll) {
-      // Koi niyam nahi mila: sab par ek saath sakht jaanch, jo pehle (list ke kram me) sahi nikle wahi.
-      const results = await Promise.all(det.candidates.map((p) => verifyKey(mk(p), { strict: true }).then((v) => ({ p, v }))));
-      const hit = results.find((x) => x.v.ok);
-      if (hit) return okRes(hit.p, hit.v);
-      results.forEach((x) => tried.push({ p: x.p, ok: false, status: x.v.status, kind: x.v.kind }));
-    } else {
-      for (const p of det.candidates) {
-        const v = await verifyKey(mk(p));
-        tried.push({ p, ok: v.ok, status: v.status, kind: v.kind });
-        if (v.ok) return okRes(p, v);
-        if (v.kind === "net" && det.candidates.length === 1) {
-          return ok(res, { provider: p, name: REGISTRY[p].name, emoji: REGISTRY[p].emoji, base: "", models: [], verified: false, note: "Abhi internet se jaanch nahi ho payi, key save kar li." });
-        }
+    for (const p of det.candidates) {
+      const e = { p, k: key, b: p === "custom" ? base : "", m };
+      const v = await verifyKey(e);
+      tried.push({ p, ok: v.ok, status: v.status, kind: v.kind });
+      if (v.ok) {
+        const models = (v.models || []).slice(0, 150);
+        return ok(res, {
+          provider: p, name: REGISTRY[p].name, emoji: REGISTRY[p].emoji,
+          base: v.base && p !== "gemini" && v.base !== REGISTRY[p].base ? v.base : "",
+          models, verified: !v.unverified,
+          note: v.note || (v.unverified ? "Key save ho gayi (is AI me jaanch ka rasta nahi, chat se pata chalega)." : ""),
+        });
+      }
+      // sirf ek hi candidate aur network error -> prefix ke bharose maan lo
+      if (v.kind === "net" && det.candidates.length === 1) {
+        return ok(res, { provider: p, name: REGISTRY[p].name, emoji: REGISTRY[p].emoji, base: "", models: [], verified: false, note: "Abhi internet se jaanch nahi ho payi, key save kar li." });
       }
     }
-    if (hint === "auto") {
-      // Pehchan na ho paye tab bhi rok-tok nahi: key save ho jaye, chat ke samay khud koshish karegi.
-      return ok(res, { provider: "auto", name: "Auto (pehchan khud)", emoji: "✨", base: "", models: [], verified: false,
-        note: "⚠️ Abhi kisi AI ne ye key nahi pehchani — phir bhi save ki. Chat ke samay khud koshish karegi; na chale to Connection test dekho." });
-    }
-    return fail(res, 401, "Ye key chuni hui AI me kaam nahi kar rahi (galat/expire, ya Base URL galat). Dobara copy karo.");
+    const allAuth = tried.every((t) => t.kind === "auth");
+    return fail(res, allAuth ? 401 : 502,
+      allAuth
+        ? "Ye key " + tried.map((t) => REGISTRY[t.p].name).join(" / ") + " me kaam nahi kar rahi (galat ya expire). Dobara copy karo, ya AI khud chuno."
+        : "Key jaanch nahi ho payi (server tak pahunch nahi paaye). Thodi der baad try karo.", { needChoice: allAuth });
   } catch (e) {
     fail(res, 500, "Key jaanchne me dikkat: " + String((e && e.message) || e).slice(0, 140));
   }
@@ -294,13 +291,8 @@ app.post("/api/chat", rateLimit, auth, async (req, res) => {
 
     const failures = []; // {p, kind, msg}
     for (let i = 0; i < entries.length; i++) {
-      let e = entries[i];
+      const e = entries[i];
       if (controller.signal.aborted) return;
-      if (e.p === "auto") {
-        const rr = await resolveAuto(e.k).catch(() => null);
-        if (!rr) { failures.push({ p: "auto", kind: "auth", msg: "Ye key kisi bhi supported AI me nahi chali" }); continue; }
-        e = { ...e, p: rr.p, b: rr.b || e.b };
-      }
       let r;
       try {
         r = e.p === "gemini"
@@ -329,10 +321,10 @@ app.post("/api/chat", rateLimit, auth, async (req, res) => {
     const allAuth = failures.every((f) => f.kind === "auth");
     let tip;
     if (allAuth) tip = "Key galat ya expire hai — ☰ Settings me dobara paste karo.";
-    else if (anyQuota) tip = "Free limit khatm. Thodi der baad try karo, ya ☰ Settings me doosre AI (DeepSeek / Qwen / GLM / Groq …) ki ek aur key jodo — wo apne aap chalegi.";
+    else if (anyQuota) tip = "Current AI route abhi available nahi hai. Settings me backup AI key/model joda ho to app use automatically try karega.";
     else tip = "AI service abhi busy hai. Thodi der baad dobara try karo.";
     const detail = failures.map((f) => String(f.msg || "").slice(0, 140)).filter(Boolean).join(" | ");
-    fail(res, allAuth ? 401 : anyQuota ? 429 : 502, lines.join(" · ") + "\n" + tip + (detail ? "\n(" + detail.slice(0, 260) + ")" : ""), { retryable: !allAuth, failures: failures.map((f) => ({ p: f.p, kind: f.kind })) });
+    fail(res, allAuth ? 401 : anyQuota ? 429 : 502, "⚠️ " + lines.join(" · ") + "\n" + tip + (detail ? "\n(" + detail.slice(0, 260) + ")" : ""), { retryable: !allAuth, failures: failures.map((f) => ({ p: f.p, kind: f.kind })) });
   } catch (e) {
     if (res.headersSent) { try { res.end(); } catch {} return; }
     fail(res, 500, "Server me gadbad hui: " + String((e && e.message) || e).slice(0, 160));
@@ -438,10 +430,10 @@ app.post("/api/zip/analyze", rateLimit, auth, (req, res) => {
           pkg = { path: e.entryName, name: j.name, version: j.version, scripts: j.scripts, dependencies: j.dependencies };
         } catch {}
       }
-      if (Object.keys(files).length >= 25) { skipped.push(e.entryName); continue; }
+      if (Object.keys(files).length >= 80) { skipped.push(e.entryName); continue; }
       if (isTextEntry(e)) {
         const text = e.getData().toString("utf8");
-        files[e.entryName] = text.length > 120 * 1024 ? text.slice(0, 120 * 1024) + "\n…[aage kaat diya gaya]" : text;
+        files[e.entryName] = text.length > 160 * 1024 ? text.slice(0, 160 * 1024) + "\n…[aage kaat diya gaya]" : text;
       }
     }
     ok(res, {
@@ -450,7 +442,7 @@ app.post("/api/zip/analyze", rateLimit, auth, (req, res) => {
       files,
       skippedText: skipped.slice(0, 20),
       packageJson: pkg,
-      note: "25 tak text files bheji gayin. AI inhe padh kar bug dhoondhega.",
+      note: "80 tak text files scan context me di gayi hain; bade files ko safely truncate karke path/size report rakhi gayi hai.",
     });
   } catch (e) {
     fail(res, 400, "ZIP analyze nahi ho paayi: " + String((e && e.message) || e).slice(0, 200));
@@ -511,7 +503,7 @@ app.post("/api/transcribe", rateLimit, auth, async (req, res) => {
           { retries: 1, skip429: true, timeoutMs: 45000 });
         if (!r.ok) {
           lastErr = `${m}: ${await errText(r)}`;
-          if (r.status === 429) return fail(res, 429, "API quota khatm. Thodi der baad try karo.", { retryable: true });
+          if (r.status === 429) return fail(res, 429, "Current voice/transcription route abhi available nahi hai. Backup AI key ho to use try karo.", { retryable: true });
           if (r.status === 401 || r.status === 403) return fail(res, r.status, "API key galat ya permission nahi.");
           continue;
         }
