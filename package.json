@@ -1,0 +1,16 @@
+{
+  "name": "mera-ai",
+  "version": "1.0.0",
+  "description": "All-in-one AI assistant: chat, voice, files, PDF, notes, memory. Free Gemini API + Render.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

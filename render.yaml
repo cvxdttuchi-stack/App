@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: mera-ai
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ACCESS_CODE
+        sync: false
