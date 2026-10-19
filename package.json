@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "express": "^4.19.2"
+  },
+  "description": "Veda AI — premium Hindi-first AI assistant: chat, PDF studio, ZIP debugger, live news, voice. BYOK (Gemini, DeepSeek, Qwen, GLM, OpenAI, Claude, Groq, …) + Render.",
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "server.js",
+  "name": "veda-ai",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/test-vpdf.js && node tests/test-veda.js"
+  },
+  "type": "commonjs",
+  "version": "2.2.0"
+}
